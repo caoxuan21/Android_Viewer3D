@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MainActivity">
+
+    <android.opengl.GLSurfaceView
+            android:id="@+id/viewZone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/anthor"
+            android:text="3D Model Viwer @ Mars"
+            android:layout_gravity="bottom|center"
+            android:layout_marginBottom="5dp"/>
+
+    
+    <LinearLayout
+            android:layout_width="80dp"
+            android:layout_height="70dp"
+            android:orientation="vertical"
+            android:layout_gravity="bottom|right"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="50dp">
+
+        <Button
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:text="Open"
+                android:id="@+id/btn_open"
+                android:background="@color/colorButton"
+                android:layout_marginBottom="10dp"/>
+
+        <Button
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:text="Reset"
+                android:id="@+id/btn_reset"
+                android:background="@color/colorButton"/>
+    </LinearLayout>
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
