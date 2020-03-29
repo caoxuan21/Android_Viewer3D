@@ -15,7 +15,9 @@ data class Mesh(
     var normal: FloatBuffer,
     var numNormal: Int,
     var triface: ShortBuffer,
-    var numTriface: Int
+    var numTriface: Int,
+    var meshLine: ShortBuffer,
+    var numMeshLine: Int
 )
 
 
@@ -24,6 +26,7 @@ class Obj{
         // read obj file
         var vertexLine = mutableListOf<String>()
         var trifaceLine = mutableListOf<String>()
+        var rectfaceLine = mutableListOf<String>()
         val scanner = Scanner(path)
         while (scanner.hasNextLine()){
             val line = scanner.nextLine()
@@ -31,7 +34,13 @@ class Obj{
                 vertexLine.add(line)
             }
             else if (line.startsWith("f")){
-                trifaceLine.add(line)
+                val tempLine = line.split(" ")
+                if (tempLine.size == 4){
+                    trifaceLine.add(line)
+                }
+                else if(tempLine.size == 5){
+                    rectfaceLine.add(line)
+                }
             }
         }
         scanner.close()
@@ -44,20 +53,21 @@ class Obj{
             val vxyz = line.split(" ")
             val x = vxyz[1].toFloat()
             val y = vxyz[2].toFloat()
-            val z = vxyz[3].toFloat()
+            val z = -vxyz[3].toFloat()
             vertex.put(x)
             vertex.put(y)
-            vertex.put(-z)
+            vertex.put(z)
         }
         vertex.position(0)
 
-        // allocate buffer for vertex
+        // allocate buffer for normal
         val bufferNormal:ByteBuffer = ByteBuffer.allocateDirect(vertexLine.size * 3 * 4)
         bufferNormal.order(ByteOrder.nativeOrder())
         var normal = bufferNormal.asFloatBuffer()
 
         // allocate buffer for triface
-        var bufferTriface:ByteBuffer = ByteBuffer.allocateDirect(trifaceLine.size * 3 * 2)
+        var numTriFace = trifaceLine.size + rectfaceLine.size*2
+        var bufferTriface:ByteBuffer = ByteBuffer.allocateDirect(numTriFace * 3 * 2)
         bufferTriface.order(ByteOrder.nativeOrder())
         var triface = bufferTriface.asShortBuffer()
         for (line in trifaceLine){
@@ -69,10 +79,57 @@ class Obj{
             triface.put(f2)
             triface.put(f3)
         }
+        for (line in rectfaceLine){
+            val f1234 = line.split(" ")
+            val f1 = (f1234[1].toShort() - 1).toShort()
+            val f2 = (f1234[2].toShort() - 1).toShort()
+            val f3 = (f1234[3].toShort() - 1).toShort()
+            val f4 = (f1234[4].toShort() - 1).toShort()
+            triface.put(f1)
+            triface.put(f2)
+            triface.put(f3)
+            triface.put(f1)
+            triface.put(f3)
+            triface.put(f4)
+        }
         triface.position(0)
 
+        // allocate buffer for meshLine
+        var numMeshLine = trifaceLine.size * 3 + rectfaceLine.size * 4
+        var bufferMeshLine:ByteBuffer = ByteBuffer.allocateDirect(numMeshLine * 2 * 2)
+        bufferMeshLine.order(ByteOrder.nativeOrder())
+        var meshLine = bufferMeshLine.asShortBuffer()
+        for (line in trifaceLine){
+            val f123 = line.split(" ")
+            val f1 = (f123[1].toShort() - 1).toShort()
+            val f2 = (f123[2].toShort() - 1).toShort()
+            val f3 = (f123[3].toShort() - 1).toShort()
+            meshLine.put(f1)
+            meshLine.put(f2)
+            meshLine.put(f2)
+            meshLine.put(f3)
+            meshLine.put(f3)
+            meshLine.put(f1)
+        }
+        for (line in rectfaceLine){
+            val f1234 = line.split(" ")
+            val f1 = (f1234[1].toShort() - 1).toShort()
+            val f2 = (f1234[2].toShort() - 1).toShort()
+            val f3 = (f1234[3].toShort() - 1).toShort()
+            val f4 = (f1234[4].toShort() - 1).toShort()
+            meshLine.put(f1)
+            meshLine.put(f2)
+            meshLine.put(f2)
+            meshLine.put(f3)
+            meshLine.put(f3)
+            meshLine.put(f4)
+            meshLine.put(f4)
+            meshLine.put(f1)
+        }
+        meshLine.position(0)
+
         // return mesh data
-        var mesh = Mesh(vertex, vertexLine.size, normal, vertexLine.size, triface, trifaceLine.size)
+        var mesh = Mesh(vertex, vertexLine.size, normal, vertexLine.size, triface, numTriFace, meshLine, numMeshLine)
         return mesh
     }
 
@@ -116,10 +173,12 @@ class Obj{
         var bufferLengthNormal:ByteBuffer = ByteBuffer.allocateDirect(mesh.numVertex * 4)
         bufferLengthNormal.order(ByteOrder.nativeOrder())
         var lengthNormal = bufferLengthNormal.asFloatBuffer()
+        // normal from triface
         for (ith in 0 until mesh.numTriface){
             var f1 = mesh.triface.get(ith*3).toInt()
             var f2 = mesh.triface.get(ith*3 + 1).toInt()
             var f3 = mesh.triface.get(ith*3 + 2).toInt()
+
             var x1 = mesh.vertex.get(f1*3)
             var y1 = mesh.vertex.get(f1*3 + 1)
             var z1 = mesh.vertex.get(f1*3 + 2)
@@ -129,12 +188,14 @@ class Obj{
             var x3 = mesh.vertex.get(f3*3)
             var y3 = mesh.vertex.get(f3*3 + 1)
             var z3 = mesh.vertex.get(f3*3 + 2)
+
             var vecAx = x2 - x1
             var vecAy = y2 - y1
             var vecAz = z2 - z1
             var vecBx = x3 - x1
             var vecBy = y3 - y1
             var vecBz = z3 - z1
+
             var normX = vecAy * vecBz - vecAz * vecBy
             var normY = vecAz * vecBx - vecAx * vecBz
             var normZ = vecAx * vecBy - vecAy * vecBx
@@ -142,6 +203,7 @@ class Obj{
             normX = normX / length
             normY = normY / length
             normZ = normZ / length
+
             vertexNormal.put(f1*3, vertexNormal.get(f1*3) + normX)
             vertexNormal.put(f1*3+1, vertexNormal.get(f1*3+1) + normY)
             vertexNormal.put(f1*3+2, vertexNormal.get(f1*3+2) + normZ)

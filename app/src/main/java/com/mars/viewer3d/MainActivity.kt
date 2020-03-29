@@ -15,7 +15,6 @@ import org.apache.commons.io.IOUtils
 import java.nio.charset.Charset
 
 
-
 class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnTouchListener{
 
     private var obj = Obj()
@@ -25,10 +24,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnTouchList
     override fun onClick(v: View?) {
         when (v?.id) {
             R.id.btn_reset -> {
-                render.scale = 1.0f
-                render.rotMatrix = render.getRotMatrix(0.0f, 1.0f, 0.0f, 0.0f)
-                render.tx = 0.0f
-                render.ty = 0.0f
+                this.render.scale = 1.0f
+                this.render.rotMatrix = this.render.getRotMatrix(0.0f, 1.0f, 0.0f, 0.0f)
+                this.render.tx = 0.0f
+                this.render.ty = 0.0f
             }
             R.id.btn_open -> {
                 val intent = Intent()
@@ -77,13 +76,13 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnTouchList
                 if(touchMode==0){
                     var currX = event.rawX
                     var currY = event.rawY
-                    var rotAngleAxis = render.getRotArcBall(this.start0X, this.start0Y, currX, currY, 1500.0f, 3000.0f)
-                    var rotM_curr = render.getRotMatrix(rotAngleAxis[0], rotAngleAxis[1], rotAngleAxis[2], rotAngleAxis[3])
+                    var rotAngleAxis = this.render.getRotArcBall(this.start0X, this.start0Y, currX, currY, 1500.0f, 3000.0f)
+                    var rotM_curr = this.render.getRotMatrix(rotAngleAxis[0], rotAngleAxis[1], rotAngleAxis[2], rotAngleAxis[3])
                     var rotM_old_inv = FloatArray(16)
                     Matrix.invertM(rotM_old_inv, 0, rotM_old, 0)
                     var rotTemp = FloatArray(16)
                     Matrix.multiplyMM(rotTemp, 0, rotM_curr, 0, rotM_old_inv, 0)
-                    Matrix.multiplyMM(render.rotMatrix, 0, rotTemp, 0, render.rotMatrix, 0)
+                    Matrix.multiplyMM(this.render.rotMatrix, 0, rotTemp, 0, this.render.rotMatrix, 0)
                     rotM_old = rotM_curr
                 }
                 else if(touchMode==1){
@@ -151,16 +150,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener, View.OnTouchList
         viewZone.setOnTouchListener(this)
 
         // Sent mesh data to render
-        var mesh = this.obj.loadObj(assets.open("torus.obj"))
+        var mesh = this.obj.loadObj(assets.open("male.obj"))
         var meshNorm = this.obj.normalizeVertex(mesh)
         meshNorm = this.obj.calcVertexNormal(meshNorm)
         this.render.loadMeshData(meshNorm)
 
-        // Sent the shader file to render
-        val vertexShaderStream = resources.openRawResource(R.raw.vert)
+        // Sent the shader file to render mesh
+        val vertexShaderStream = resources.openRawResource(R.raw.mesh_vert)
         val vertexShaderString = IOUtils.toString(vertexShaderStream, Charset.defaultCharset())
         vertexShaderStream.close()
-        val fragmentShaderStream = resources.openRawResource(R.raw.frag)
+        val fragmentShaderStream = resources.openRawResource(R.raw.mesh_frag)
         val fragmentShaderString = IOUtils.toString(fragmentShaderStream, Charset.defaultCharset())
         fragmentShaderStream.close()
         this.render.loadShaderFile(vertexShaderString, fragmentShaderString)

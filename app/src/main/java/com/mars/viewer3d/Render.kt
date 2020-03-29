@@ -1,8 +1,6 @@
 package com.mars.viewer3d
 
-import android.opengl.GLES20
-import android.opengl.GLSurfaceView
-import android.opengl.Matrix
+import android.opengl.*
 import android.util.Log
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
@@ -35,6 +33,8 @@ class Render: GLSurfaceView.Renderer {
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         GLES20.glClearColor(0.9f,0.9f,0.9f,1.0f)
         GLES20.glClearDepthf(1.0f)
+        GLES20.glLineWidth(1.5f)
+//        GLES20.glEnable(GLES20.GL_LINE_SMOOTH)
         // Initialize shader program
         initProgram()
         // Set camera posVertex and look at
@@ -67,8 +67,14 @@ class Render: GLSurfaceView.Renderer {
         val posMVP = GLES20.glGetUniformLocation(this.program, "MVP")
         GLES20.glUniformMatrix4fv(posMVP, 1, false, this.MVP, 0)
 
+        // Begin to render
+        val drawMode = GLES20.glGetUniformLocation(this.program, "drawMode")
         // Draw the triangular face
+        GLES20.glUniform1i(drawMode, 0)
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, this.mesh.numTriface * 3, GLES20.GL_UNSIGNED_SHORT, this.mesh.triface)
+        // Draw the lines
+        GLES20.glUniform1i(drawMode, 1)
+        GLES20.glDrawElements(GLES20.GL_LINES, this.mesh.numMeshLine * 2, GLES20.GL_UNSIGNED_SHORT, this.mesh.meshLine)
     }
 
     override fun onSurfaceChanged(gl: GL10, width: Int, height: Int) {
