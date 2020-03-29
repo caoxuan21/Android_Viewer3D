@@ -70,8 +70,8 @@ class Render: GLSurfaceView.Renderer {
         // Begin to render
         val drawMode = GLES20.glGetUniformLocation(this.program, "drawMode")
         // Draw the triangular face
-        GLES20.glUniform1i(drawMode, 0)
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, this.mesh.numTriface * 3, GLES20.GL_UNSIGNED_SHORT, this.mesh.triface)
+//        GLES20.glUniform1i(drawMode, 0)
+//        GLES20.glDrawElements(GLES20.GL_TRIANGLES, this.mesh.numTriface * 3, GLES20.GL_UNSIGNED_SHORT, this.mesh.triface)
         // Draw the lines
         GLES20.glUniform1i(drawMode, 1)
         GLES20.glDrawElements(GLES20.GL_LINES, this.mesh.numMeshLine * 2, GLES20.GL_UNSIGNED_SHORT, this.mesh.meshLine)
